@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bicycle Geometry Fit Tester</title>
+    <meta name="description" content="自転車のジオメトリと身体情報を入力して、サイズ適合を診断します。">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="background-elements">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+    </div>
+
+    <div class="container">
+        <header>
+            <h1>Bike Fit <span>Diagnostic</span></h1>
+            <p>身長・股下などの身体情報と自転車のジオメトリを入力して、あなたに最適なフィットかを診断します。</p>
+        </header>
+
+        <main class="glass-panel">
+            <div class="forms-wrapper">
+                <!-- 身体・セッティング情報フォーム -->
+                <section class="form-section">
+                    <h2><span class="icon">👤</span> 身体・セッティング情報 (mm)</h2>
+                    <div class="input-group">
+                        <label for="rider-height">身長</label>
+                        <input type="number" id="rider-height" placeholder="例: 1700" value="1700">
+                    </div>
+                    <div class="input-group">
+                        <label for="rider-inseam">股下長</label>
+                        <input type="number" id="rider-inseam" placeholder="例: 800" value="800">
+                    </div>
+                    <div class="input-group">
+                        <label for="rider-arm">腕の長さ</label>
+                        <input type="number" id="rider-arm" placeholder="例: 600" value="600">
+                    </div>
+                    <div class="input-group">
+                        <label for="rider-torso">
+                            体幹長 (任意)
+                            <div style="font-size: 0.8em; color: rgba(255,255,255,0.7); margin-top: 4px; font-weight: normal; line-height: 1.4;">
+                                💡 <strong>測り方:</strong> 平らな椅子に背筋を伸ばしてまっすぐ座り、座面から肩の骨（肩の先端の出っ張り：肩峰）までの垂直距離を測ります。壁に背をつけて測ると誤差が出にくくなります。<br>
+                                ※未入力の場合は身長と股下から自動推計するため、空欄でも計算可能です。
+                            </div>
+                        </label>
+                        <input type="number" id="rider-torso" placeholder="例: 600 (未入力可)" value="">
+                    </div>
+                    <div class="input-group">
+                        <label for="rider-stem">予定・現在のステム長</label>
+                        <input type="number" id="rider-stem" placeholder="例: 90" value="90">
+                    </div>
+                    <div class="input-group">
+                        <label for="rider-spacer">ステムの高さ/スペーサー量 (mm)</label>
+                        <input type="number" id="rider-spacer" placeholder="例: 45" value="45">
+                    </div>
+                    <div class="input-group">
+                        <label for="rider-style">乗り方のスタイル</label>
+                        <select id="rider-style" style="width: 100%; background: var(--input-bg); border: 1px solid rgba(255, 255, 255, 0.1); color: var(--text-main); padding: 0.75rem 1rem; border-radius: 12px; font-size: 1rem; outline: none; transition: all 0.2s ease;">
+                            <option value="standard" selected>標準・スポーツ (適度な前傾)</option>
+                            <option value="aggressive">競技・レース志向 (深い前傾・空気抵抗減)</option>
+                            <option value="comfort">快適・エンデュランス (上体起こし気味・疲労軽減)</option>
+                        </select>
+                    </div>
+                </section>
+
+                <div class="divider"></div>
+
+                <!-- 自転車ジオメトリフォーム -->
+                <section class="form-section">
+                    <h2><span class="icon">🚲</span> 自転車ジオメトリ (mm)</h2>
+                    
+                    <!-- 保存済みジオメトリ一覧・操作 -->
+                    <div class="saved-bikes-controls" style="margin-bottom: 1.5rem; background: rgba(0,0,0,0.15); padding: 1rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
+                        <div class="input-group" style="margin-bottom: 0.75rem;">
+                            <label for="saved-bikes-list" style="margin-bottom: 0.4rem;">保存済みのサイズ・ジオメトリ</label>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <select id="saved-bikes-list" style="flex: 1; background: var(--input-bg); border: 1px solid rgba(255, 255, 255, 0.1); color: var(--text-main); padding: 0.6rem; border-radius: 8px; outline: none; transition: border-color 0.2s;">
+                                    <option value="">-- 新規入力 --</option>
+                                </select>
+                                <button id="delete-bike-btn" class="secondary-btn danger-style" title="選択中のサイズを削除">🗑️ 削除</button>
+                            </div>
+                        </div>
+                        <button id="save-bike-btn" class="secondary-btn" style="width: 100%;">💾 現在のサイズ名と数値を保存</button>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="bike-size">サイズ名</label>
+                        <input type="text" id="bike-size" placeholder="例: Size M" value="Size M">
+                    </div>
+                    <div class="input-group">
+                        <label for="bike-stack">スタック (Stack)</label>
+                        <input type="number" id="bike-stack" placeholder="例: 535" value="535">
+                    </div>
+                    <div class="input-group">
+                        <label for="bike-reach">リーチ (Reach)</label>
+                        <input type="number" id="bike-reach" placeholder="例: 380" value="380">
+                    </div>
+                    <div class="input-group">
+                        <label for="bike-seat">シートチューブ (C-T)</label>
+                        <input type="number" id="bike-seat" placeholder="例: 520" value="520">
+                    </div>
+                    <div class="input-group">
+                        <label for="bike-top">トップチューブ (水平換算)</label>
+                        <input type="number" id="bike-top" placeholder="例: 535" value="535">
+                    </div>
+                </section>
+            </div>
+
+            <button id="analyze-btn" class="primary-btn">診断を実行する</button>
+
+            <!-- 診断結果表示エリア -->
+            <div id="result-area" class="result-area hidden">
+                <h3 id="result-title">診断結果</h3>
+                <div id="result-status" class="status-badge"></div>
+                <ul id="result-details" class="details-list"></ul>
+                
+                <div class="ideal-geometry">
+                    <h4>参考: 計算上の理想ジオメトリ</h4>
+                    <div id="ideal-stats" class="stats-grid"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
