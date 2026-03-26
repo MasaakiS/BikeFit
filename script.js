@@ -170,39 +170,46 @@ class BikeFitAnalyzer {
             "長いステムに交換し、乗車空間を確保してください。"
         );
 
-                // ハンドル各部位を握ったときのトップチューブ評価
+        // ハンドル各部位を握ったときのトップチューブ評価
+        // 「実際に手が届く距離」= actualTop(バイク実測値) + 握り位置オフセット
+        // それをブラケット基準の理想値（idealBracket）と比較する
+        // ※以前は理想値側をオフセットしていたが、実際には「手が前方に移動する」ので実測値側を加算するのが正しい
         {
             const actualTop = bikeGeometry.topTube;
-            const idealBracket = ideal.topTube; // ブラケット基準（計算値）
-            const FLAT_OFFSET = -75;    // フラット部はブラケットより約75mm近い
-            const SHOULDER_OFFSET = -65; // ショルダー部はブラケットより約65mm近い
-            const DROP_OFFSET = 50;     // ドロップ部はブラケットより約50mm遠い
+            const idealBracket = ideal.topTube; // ブラケット基準の理想値（全部位の比較小屴）
 
+            // 各部位の握り位置オフセット（フラット部を基準=0）
+            // ブラケットを握るとフラットより約75-80mm前方に手が移動する
+            // ショルダーを握るとフラットより約65mm前方
+            // ドロップを握るとブラケットよりさらに約50mm前方（フラットから紏125mm前方）
             const gripPositions = [
-                { label: 'フラット部（上ハン）', offset: FLAT_OFFSET, note: 'ブラケットより約75mm近い位置' },
-                { label: 'ショルダー部', offset: SHOULDER_OFFSET, note: 'ブラケットより約65mm近い位置' },
-                { label: 'ブラケット部', offset: 0, note: '計算の基準位置（推奨）' },
-                { label: 'ドロップ部（下ハン）', offset: DROP_OFFSET, note: 'ブラケットより約50mm遠い位置' },
+                { label: 'フラット部（上ハン）', gripOffset: 0,   note: '基準位置' },
+                { label: 'ショルダー部',        gripOffset: 65,  note: 'フラットより約65mm前方' },
+                { label: 'ブラケット部',        gripOffset: 75,  note: 'フラットより約75mm前方（計算基準）' },
+                { label: 'ドロップ部（下ハン）', gripOffset: 125, note: 'フラットより約125mm前方' },
             ];
 
-            const rows = gripPositions.map(({ label, offset, note }) => {
-                const idealForPos = idealBracket + offset;
-                const diff = actualTop - idealForPos;
+            const rows = gripPositions.map(({ label, gripOffset, note }) => {
+                // 実際に手が届く距離（バイク実測値 + 部位ほど前方に手が移動）
+                const effectiveReach = actualTop + gripOffset;
+                // ブラケット基準の理想値と比較
+                // +なら「遠い（手が届きすぎる）」、-なら「近い（手が届かない）」
+                const diff = effectiveReach - idealBracket;
                 const diffAbs = Math.abs(Math.round(diff));
-                const tooLong = diff > 0;
+                const tooFar = diff > 0;
                 let ev;
                 if (diffAbs <= 10) ev = { icon: '⭕️', cls: 'eval-ok' };
                 else if (diffAbs <= 25) ev = { icon: '🔺', cls: 'eval-warn' };
                 else ev = { icon: '❌', cls: 'eval-danger' };
-                const diffStr = diffAbs === 0 ? '一致' : `${tooLong ? '+' : '-'}${diffAbs}mm (${tooLong ? '遠い' : '近い'})`;
-                return `<tr><td>${label}</td><td style="color:#a1a1aa;font-size:0.85em">${note}</td><td style="text-align:center">${idealForPos}mm</td><td style="text-align:center" class="${ev.cls}">${ev.icon} ${diffStr}</td></tr>`;
+                const diffStr = diffAbs === 0 ? '一致' : `${tooFar ? '+' : '-'}${diffAbs}mm (実効: ${effectiveReach}mm、${tooFar ? '遠い' : '近い'})`;
+                return `<tr><td>${label}</td><td style="color:#a1a1aa;font-size:0.85em">${note}</td><td style="text-align:center">${effectiveReach}mm</td><td style="text-align:center" class="${ev.cls}">${ev.icon} ${diffStr}</td></tr>`;
             }).join('');
 
             evaluations.push({
                 icon: '🚴',
                 statusClass: 'eval-ok',
-                message: 'トップチューブ：握る部位別の評価 <span style="font-size:0.8em;color:#a1a1aa">（計算基準：ブラケット部）</span>',
-                advice: `<table style="width:100%;border-collapse:collapse;margin-top:0.5em;font-size:0.9em"><thead><tr style="color:#a1a1aa"><th style="text-align:left">握る部位</th><th style="text-align:left">位置の目安</th><th>理想値</th><th>評価（入力: ${actualTop}mm）</th></tr></thead><tbody>${rows}</tbody></table>`,
+                message: 'トップチューブ：握る部位別の評価 <span style="font-size:0.8em;color:#a1a1aa">（比較小屴：ブラケット基準の理想値 ${idealBracket}mm）</span>',
+                advice: `<table style="width:100%;border-collapse:collapse;margin-top:0.5em;font-size:0.9em"><thead><tr style="color:#a1a1aa"><th style="text-align:left">握る部位</th><th style="text-align:left">位置の目安</th><th>実効リーチ<br><small style="font-weight:normal">（トップ${actualTop}mm+オフセット）</small></th><th>評価<br><small style="font-weight:normal">（理想値${idealBracket}mmとの差）</small></th></tr></thead><tbody>${rows}</tbody></table>`,
                 solution: '普段メインで握る部位の評価が「⭕️」に近いほど、理想的なポジションに合っています。'
             });
         }
