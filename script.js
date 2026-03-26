@@ -170,6 +170,42 @@ class BikeFitAnalyzer {
             "長いステムに交換し、乗車空間を確保してください。"
         );
 
+                // ハンドル各部位を握ったときのトップチューブ評価
+        {
+            const actualTop = bikeGeometry.topTube;
+            const idealBracket = ideal.topTube; // ブラケット基準（計算値）
+            const FLAT_OFFSET = -75;    // フラット部はブラケットより約75mm近い
+            const SHOULDER_OFFSET = -65; // ショルダー部はブラケットより約65mm近い
+            const DROP_OFFSET = 50;     // ドロップ部はブラケットより約50mm遠い
+
+            const gripPositions = [
+                { label: 'フラット部（上ハン）', offset: FLAT_OFFSET, note: 'ブラケットより約75mm近い位置' },
+                { label: 'ショルダー部', offset: SHOULDER_OFFSET, note: 'ブラケットより約65mm近い位置' },
+                { label: 'ブラケット部', offset: 0, note: '計算の基準位置（推奨）' },
+                { label: 'ドロップ部（下ハン）', offset: DROP_OFFSET, note: 'ブラケットより約50mm遠い位置' },
+            ];
+
+            const rows = gripPositions.map(({ label, offset, note }) => {
+                const idealForPos = idealBracket + offset;
+                const diff = actualTop - idealForPos;
+                const diffAbs = Math.abs(Math.round(diff));
+                const tooLong = diff > 0;
+                let ev;
+                if (diffAbs <= 10) ev = { icon: '⭕️', cls: 'eval-ok' };
+                else if (diffAbs <= 25) ev = { icon: '🔺', cls: 'eval-warn' };
+                else ev = { icon: '❌', cls: 'eval-danger' };
+                const diffStr = diffAbs === 0 ? '一致' : `${tooLong ? '+' : '-'}${diffAbs}mm (${tooLong ? '遠い' : '近い'})`;
+                return `<tr><td>${label}</td><td style="color:#a1a1aa;font-size:0.85em">${note}</td><td style="text-align:center">${idealForPos}mm</td><td style="text-align:center" class="${ev.cls}">${ev.icon} ${diffStr}</td></tr>`;
+            }).join('');
+
+            evaluations.push({
+                icon: '🚴',
+                statusClass: 'eval-ok',
+                message: 'トップチューブ：握る部位別の評価 <span style="font-size:0.8em;color:#a1a1aa">（計算基準：ブラケット部）</span>',
+                advice: `<table style="width:100%;border-collapse:collapse;margin-top:0.5em;font-size:0.9em"><thead><tr style="color:#a1a1aa"><th style="text-align:left">握る部位</th><th style="text-align:left">位置の目安</th><th>理想値</th><th>評価（入力: ${actualTop}mm）</th></tr></thead><tbody>${rows}</tbody></table>`,
+                solution: '普段メインで握る部位の評価が「⭕️」に近いほど、理想的なポジションに合っています。'
+            });
+        }
         addEval('stack', '実質スタック(スペーサ込)', effectiveStack, ideal.stack,
             "上体が起き上がりすぎてお尻が痛くなりやすいほか、空気抵抗も増大します。",
             "過度な前傾姿勢となり、腰痛や首の痛みの原因になるほか踏み込みづらくなります。",
