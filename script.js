@@ -342,7 +342,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ======== 【機能追加】バイクジオメトリの保存・読み込み ========
-    let savedBikesList = JSON.parse(localStorage.getItem('savedBikesList')) || [];
+    let savedBikesList = [];
+    try {
+        const savedJson = localStorage.getItem('savedBikesList');
+        if (savedJson) savedBikesList = JSON.parse(savedJson) || [];
+    } catch (e) {
+        console.warn('savedBikesList の読み込みに失敗しました。リセットします。', e);
+        savedBikesList = [];
+    }
     const savedBikesSelect = document.getElementById('saved-bikes-list');
     
     function renderSavedBikes() {
