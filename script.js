@@ -208,7 +208,7 @@ class BikeFitAnalyzer {
             evaluations.push({
                 icon: '🚴',
                 statusClass: 'eval-ok',
-                message: 'トップチューブ：握る部位別の評価 <span style="font-size:0.8em;color:#a1a1aa">（比較小屴：ブラケット基準の理想値 ${idealBracket}mm）</span>',
+                message: `トップチューブ：握る部位別の評価 <span style="font-size:0.8em;color:#a1a1aa">（比較小屴：ブラケット基準の理想値 ${idealBracket}mm）</span>`,
                 advice: `<table style="width:100%;border-collapse:collapse;margin-top:0.5em;font-size:0.9em"><thead><tr style="color:#a1a1aa"><th style="text-align:left">握る部位</th><th style="text-align:left">位置の目安</th><th>実効リーチ<br><small style="font-weight:normal">（トップ${actualTop}mm+オフセット）</small></th><th>評価<br><small style="font-weight:normal">（理想値${idealBracket}mmとの差）</small></th></tr></thead><tbody>${rows}</tbody></table>`,
                 solution: '普段メインで握る部位の評価が「⭕️」に近いほど、理想的なポジションに合っています。'
             });
@@ -503,7 +503,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <span class="eval-icon">${issue.icon}</span> 
                     <span>${issue.message}</span>
                 </div>
-                ${issue.icon === '⭕️' ? '' : `
+                ${${issue.advice === '問題ありません。' ? '' : `
                 <div class="issue-advice"><strong>💡 体への影響:</strong> ${issue.advice}</div>
                 <div class="issue-solution" style="margin-top: 0.4rem;"><strong>🔧 改善案:</strong> ${issue.solution}</div>
                 `}
