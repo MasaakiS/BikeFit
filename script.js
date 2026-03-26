@@ -448,8 +448,27 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         // バリデーション
-        if (!riderData.height || !riderData.inseam || !riderData.armLength) {
-            alert("身体情報を正しく入力してください。");
+        const invalidRiderFields = [];
+        if (!riderData.height || riderData.height < 1200 || riderData.height > 2400) invalidRiderFields.push('身長');
+        if (!riderData.inseam || riderData.inseam < 500 || riderData.inseam > 1100) invalidRiderFields.push('股下長');
+        if (!riderData.armLength || riderData.armLength < 400 || riderData.armLength > 900) invalidRiderFields.push('腕の長さ');
+        if (riderData.torsoLength && (riderData.torsoLength < 300 || riderData.torsoLength > 1000)) invalidRiderFields.push('体幹長');
+        if (!riderData.stemLength || riderData.stemLength < 50 || riderData.stemLength > 150) invalidRiderFields.push('ステム長');
+        if (riderData.spacerHeight < 0 || riderData.spacerHeight > 150) invalidRiderFields.push('スペーサー量');
+
+        if (invalidRiderFields.length > 0) {
+            alert(`身体情報が不正な値です: ${invalidRiderFields.join('、')}。入力を確認してください。`);
+            return;
+        }
+
+        const invalidBikeFields = [];
+        if (!bikeGeometry.stack || bikeGeometry.stack < 350 || bikeGeometry.stack > 700) invalidBikeFields.push('スタック');
+        if (!bikeGeometry.reach || bikeGeometry.reach < 300 || bikeGeometry.reach > 500) invalidBikeFields.push('リーチ');
+        if (!bikeGeometry.seatTube || bikeGeometry.seatTube < 300 || bikeGeometry.seatTube > 700) invalidBikeFields.push('シートチューブ');
+        if (!bikeGeometry.topTube || bikeGeometry.topTube < 400 || bikeGeometry.topTube > 650) invalidBikeFields.push('トップチューブ');
+
+        if (invalidBikeFields.length > 0) {
+            alert(`自転車ジオメトリが不正な値です: ${invalidBikeFields.join('、')}。入力を確認してください。`);
             return;
         }
 
@@ -498,15 +517,18 @@ document.addEventListener('DOMContentLoaded', () => {
         result.details.forEach(issue => {
             const li = document.createElement('li');
             li.className = `eval-item ${issue.statusClass}`;
+
+            const adviceHtml = issue.advice === '問題ありません。' ? '' : `
+                <div class="issue-advice"><strong>💡 体への影響:</strong> ${issue.advice}</div>
+                <div class="issue-solution" style="margin-top: 0.4rem;"><strong>🔧 改善案:</strong> ${issue.solution}</div>
+            `;
+
             li.innerHTML = `
                 <div class="issue-main">
                     <span class="eval-icon">${issue.icon}</span> 
                     <span>${issue.message}</span>
                 </div>
-                ${${issue.advice === '問題ありません。' ? '' : `
-                <div class="issue-advice"><strong>💡 体への影響:</strong> ${issue.advice}</div>
-                <div class="issue-solution" style="margin-top: 0.4rem;"><strong>🔧 改善案:</strong> ${issue.solution}</div>
-                `}
+                ${adviceHtml}
             `;
             detailsList.appendChild(li);
         });
