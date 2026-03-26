@@ -535,6 +535,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 <span class="label">理想 トップ</span>
                 <span class="value">${ideal.topTube} <small>mm</small><br><span style="font-size: 0.75em; color: #a1a1aa; font-weight: normal;">(入力: ${input.topTube}mm)</span></span>
             </div>
+                            <div class="stat-box">
+                    <span class="label">シートポスト突き出し量（目安）</span>
+                    <span class="value">${ideal.saddleHeight - input.seatTube} <small>mm</small><br><span style="font-size: 0.75em; color: #a1a1aa; font-weight: normal;">サドル高${ideal.saddleHeight}mm − C-T${input.seatTube}mm</span></span>
+                </div>
             <div class="logic-explanation" style="grid-column: 1 / -1; width: 100%; margin-top: 15px; font-size: 0.85em; color: #a1a1aa; background: rgba(255,255,255,0.03); padding: 12px; border-radius: 8px; line-height: 1.5;">
                 <strong>💡 算出ロジックと判定基準について</strong><br>
                 ・<strong>サドル高:</strong> 選択されたレベル係数（${ideal.saddleMultiplier.toFixed(3)}）× 股下 で算出しています。（初級0.860/中級0.870/上級0.885）<br>
