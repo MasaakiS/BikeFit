@@ -141,7 +141,7 @@ class BikeFitAnalyzer {
 
             let message = `${name}は完全に一致しています！ [⭕️ 完璧]`;
             if (diffAbs > 0) {
-                message = `${name} が体に比べて ${isTooLong ? "長い (高い)" : "短い (低い)"} です (差: ${diffAbs}mm) <span class="eval-label">【${ev.label}】</span>`;
+                message = `${name} が体に比べて ${metricKey === 'stack' ? (isTooLong ? '高い' : '低い') : metricKey === 'reach' ? (isTooLong ? '長い' : '短い') : (isTooLong ? '遠い' : '近い')} です (差: ${diffAbs}mm) <span class="eval-label">【${ev.label}】</span>`;
             } else if (actual !== idealVal) {
                 // diffが0に補正されたが実際の数値が異なる場合（シートチューブの許容等）
                 message = `${name} は理想値(${idealVal}mm)と異なりますが、適正なポジションを出す上で問題ない範囲です。 [⭕️ 許容範囲]`;
