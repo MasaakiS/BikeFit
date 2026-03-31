@@ -354,6 +354,52 @@ header p {
     padding: 1.5rem;
 }
 
+.fit-visualization {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    border: 1px solid rgba(148, 163, 184, 0.25);
+    border-radius: 12px;
+    background: rgba(15, 23, 42, 0.7);
+}
+
+.fit-visualization h4 {
+    margin-bottom: 0.8rem;
+    font-size: 0.95rem;
+    color: #cbd5e1;
+}
+
+#fit-canvas {
+    width: 100%;
+    height: auto;
+    border-radius: 10px;
+    background: rgba(8, 16, 31, 0.85);
+    box-shadow: inset 0 0 12px rgba(0,0,0,0.35);
+    display: block;
+    margin-top: 0.4rem;
+    margin-bottom: 0.75rem;
+}
+
+.fit-legend {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    flex-wrap: wrap;
+    color: #a8b5cc;
+    font-size: 0.9rem;
+}
+
+.legend-color {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    margin-right: 0.35rem;
+    border-radius: 3px;
+}
+
+.legend-color.bike-frame { background: #60a5fa; }
+.legend-color.ideal { background: #34d399; }
+.legend-color.actual { background: #fbbf24; }
+
 .ideal-geometry h4 {
     margin-bottom: 1rem;
     color: var(--text-muted);

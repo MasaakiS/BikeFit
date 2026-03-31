@@ -116,24 +116,24 @@ class BikeFitAnalyzer {
             const isTooLong = actual > idealVal; // 表示用の文言判定（実際の数値ベースで高いか低いか）
             let ev = this.getEval(metricKey, diffAbs);
             
-            // スタックに対するスペーサー効果の判定
+            // スタックに対するコラムスペーサ効果の判定
             if (metricKey === 'stack' && isTooLong) {
                 if (spacer <= 5) {
-                    solLong = "下向きに角度のついたステムへ交換してください。（現在スペーサー量が少ないため、ステムでの対応が必須です）";
+                    solLong = "下向きに角度のついたステムへ交換してください。（現在コラムスペーサ量が少ないため、ステムでの対応が必須です）";
                 }
             }
 
-            // スタックが高すぎて「❌ フレーム交換」判定になったが、スペーサーで大部分が構成されている場合の救済
+            // スタックが高すぎて「❌ フレーム交換」判定になったが、コラムスペーサで大部分が構成されている場合の救済
             if (metricKey === 'stack' && isTooLong && ev.icon === '❌') {
-                const frameOnlyDiff = actual - spacer - idealVal; // スペーサー全抜き時の差
+                const frameOnlyDiff = actual - spacer - idealVal; // コラムスペーサ全抜き時の差
                 if (frameOnlyDiff <= this.thresholds.stack[1]) {
-                    // スペーサーを抜けば🔺や⭕️の範囲に収まる場合
+                    // コラムスペーサを抜けば🔺や⭕️の範囲に収まる場合
                     ev = { 
                         icon: '🔺', 
                         statusClass: 'eval-warn', 
-                        label: 'まずはスペーサー減量を推奨'
+                        label: 'まずはコラムスペーサ減量を推奨'
                     };
-                    solLong = "まずはスペーサーを減らして様子を見ましょう。それでも高すぎる場合にフレームサイズ変更を検討してください。";
+                    solLong = "まずはコラムスペーサを減らして様子を見ましょう。それでも高すぎる場合にフレームサイズ変更を検討してください。";
                 }
             }
 
@@ -176,7 +176,7 @@ class BikeFitAnalyzer {
         // ※以前は理想値側をオフセットしていたが、実際には「手が前方に移動する」ので実測値側を加算するのが正しい
         {
             const actualTop = bikeGeometry.topTube;
-            const idealBracket = ideal.topTube; // ブラケット基準の理想値（全部位の比較小屴）
+            const idealBracket = ideal.topTube; // ブラケット基準の理想値（全部位の比較指標）
 
             // 各部位の握り位置オフセット（フラット部を基準=0）
             // ブラケットを握るとフラットより約75-80mm前方に手が移動する
@@ -208,16 +208,17 @@ class BikeFitAnalyzer {
             evaluations.push({
                 icon: '🚴',
                 statusClass: 'eval-ok',
-                message: `トップチューブ：握る部位別の評価 <span style="font-size:0.8em;color:#a1a1aa">（比較小屴：ブラケット基準の理想値 ${idealBracket}mm）</span>`,
+                message: `トップチューブ：握る部位別の評価 <span style="font-size:0.8em;color:#a1a1aa">（比較指標：ブラケット基準の理想値 ${idealBracket}mm）</span>`,
+
                 advice: `<table style="width:100%;border-collapse:collapse;margin-top:0.5em;font-size:0.9em"><thead><tr style="color:#a1a1aa"><th style="text-align:left">握る部位</th><th style="text-align:left">位置の目安</th><th>実効リーチ<br><small style="font-weight:normal">（トップ${actualTop}mm+オフセット）</small></th><th>評価<br><small style="font-weight:normal">（理想値${idealBracket}mmとの差）</small></th></tr></thead><tbody>${rows}</tbody></table>`,
                 solution: '普段メインで握る部位の評価が「⭕️」に近いほど、理想的なポジションに合っています。'
             });
         }
-        addEval('stack', '実質スタック(スペーサ込)', effectiveStack, ideal.stack,
+        addEval('stack', '実質スタック(コラムスペーサ込)', effectiveStack, ideal.stack,
             "上体が起き上がりすぎてお尻が痛くなりやすいほか、空気抵抗も増大します。",
             "過度な前傾姿勢となり、腰痛や首の痛みの原因になるほか踏み込みづらくなります。",
-            "スペーサーを減らしてステムを下げるか、下向きに角度のついたステムを使用してください。",
-            "スペーサーを積む、または上向きのステムに変更してハンドル高を上げてください。"
+            "コラムスペーサを減らしてステムを下げるか、下向きに角度のついたステムを使用してください。",
+            "コラムスペーサを積む、または上向きのステムに変更してハンドル高を上げてください。"
         );
 
         addEval('reach', '実質リーチ(スペーサ込)', effectiveReach, ideal.reach,
@@ -307,7 +308,8 @@ class BikeFitAnalyzer {
             errorCount: errorCount,
             details: evaluations,
             idealGeometryInfo: ideal,
-            bikeGeometry: bikeGeometry
+            bikeGeometry: bikeGeometry,
+            rider: rider
         };
     }
 }
@@ -343,6 +345,86 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ======== 【機能追加】バイクジオメトリの保存・読み込み ========
     let savedBikesList = [];
+    const defaultSampleBikes = [
+        {
+            name: '3T Exploro Racemax XXS',
+            stack: 520,
+            reach: 355,
+            seatTube: 436,
+            topTube: 506
+        },
+        {
+            name: '3T Exploro Racemax 51',
+            stack: 542,
+            reach: 366,
+            seatTube: 463,
+            topTube: 526
+        },
+        {
+            name: '3T Exploro Racemax 54',
+            stack: 564,
+            reach: 377,
+            seatTube: 490,
+            topTube: 546
+        },
+        {
+            name: '3T Exploro Racemax 56',
+            stack: 584,
+            reach: 385,
+            seatTube: 518,
+            topTube: 566
+        },
+        {
+            name: '3T Exploro Racemax 58',
+            stack: 604,
+            reach: 393,
+            seatTube: 545,
+            topTube: 586
+        },
+        {
+            name: '3T Exploro Racemax 61',
+            stack: 632,
+            reach: 404,
+            seatTube: 572,
+            topTube: 606
+        },
+        {
+            name: 'Scott Addict XXS (47)',
+            stack: 517.8,
+            reach: 376.3,
+            seatTube: 470,
+            topTube: 515
+        },
+        {
+            name: 'Scott Addict XS (49)',
+            stack: 529.1,
+            reach: 383.2,
+            seatTube: 490,
+            topTube: 525
+        },
+        {
+            name: 'Scott Addict S (52)',
+            stack: 551.6,
+            reach: 387,
+            seatTube: 520,
+            topTube: 540
+        },
+        {
+            name: 'Scott Addict M (54)',
+            stack: 572.4,
+            reach: 390.9,
+            seatTube: 540,
+            topTube: 555
+        },
+        {
+            name: 'Scott Addict L (56)',
+            stack: 593.3,
+            reach: 394.3,
+            seatTube: 560,
+            topTube: 570
+        }
+    ];
+
     try {
         const savedJson = localStorage.getItem('savedBikesList');
         if (savedJson) savedBikesList = JSON.parse(savedJson) || [];
@@ -350,6 +432,20 @@ document.addEventListener('DOMContentLoaded', () => {
         console.warn('savedBikesList の読み込みに失敗しました。リセットします。', e);
         savedBikesList = [];
     }
+
+    if (savedBikesList.length === 0) {
+        savedBikesList = [...defaultSampleBikes];
+        localStorage.setItem('savedBikesList', JSON.stringify(savedBikesList));
+    } else {
+        // 既存データがある場合でも、プリセットの新規サイズが不足していたら追加する
+        const existingNames = new Set(savedBikesList.map(b => b.name));
+        const missingDefaults = defaultSampleBikes.filter(b => !existingNames.has(b.name));
+        if (missingDefaults.length > 0) {
+            savedBikesList = [...savedBikesList, ...missingDefaults];
+            localStorage.setItem('savedBikesList', JSON.stringify(savedBikesList));
+        }
+    }
+
     const savedBikesSelect = document.getElementById('saved-bikes-list');
     
     function renderSavedBikes() {
@@ -578,5 +674,350 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // 少しスクロール
         resultArea.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+        // グラフィカル表示を更新
+        drawFitVisualization(result);
+    }
+
+    function drawFitVisualization(result) {
+        const canvas = document.getElementById('fit-canvas');
+        if (!canvas || !canvas.getContext) return;
+
+        const ctx = canvas.getContext('2d');
+        const width = canvas.width;
+        const height = canvas.height;
+        ctx.clearRect(0, 0, width, height);
+
+        const bike = result.bikeGeometry;
+        const ideal = result.idealGeometryInfo;
+        const rider = result.rider || { height: 1700, torsoLength: 650, armLength: 620, spacerHeight: 0 };
+
+        const effectiveStack = bike.stack + (rider.spacerHeight || 0);
+
+        const margin = { left: 50, top: 30, right: 20, bottom: 40 };
+        const plotWidth = width * 0.56 - margin.left - margin.right;
+        const plotHeight = height - margin.top - margin.bottom;
+
+        const maxReach = Math.max(bike.reach, ideal.reach, bike.topTube, ideal.topTube);
+        const maxStack = Math.max(effectiveStack, ideal.stack, bike.stack);
+
+        const xMin = Math.min(-Math.max(120, maxReach * 0.2), 0);
+        const xMax = Math.max(maxReach * 1.1, 200);
+        const yMin = 0;
+        const yMax = Math.max(maxStack * 1.1, 300);
+
+        const scaleX = plotWidth / (xMax - xMin);
+        const scaleY = plotHeight / (yMax - yMin);
+        const scale = Math.min(scaleX, scaleY);
+
+        const originX = margin.left - xMin * scale; // BB(0)を基準化
+        const originY = margin.top + plotHeight;    // BB(0)をここに
+
+        const toX = mm => originX + mm * scale;
+        const toY = mm => originY - mm * scale;
+
+        // 軸とグリッド
+        ctx.strokeStyle = 'rgba(148, 163, 184, 0.35)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(toX(xMin), originY);
+        ctx.lineTo(toX(xMax), originY);
+        ctx.moveTo(toX(0), originY);
+        ctx.lineTo(toX(0), toY(yMax));
+        ctx.stroke();
+
+        ctx.font = '11px Inter, sans-serif';
+        ctx.fillStyle = '#94a3b8';
+        ctx.textAlign = 'center';
+
+        const hsteps = 8;
+        const vsteps = 6;
+        for (let i = 0; i <= hsteps; i++) {
+            const rx = xMin + ((xMax - xMin) / hsteps) * i;
+            const x = toX(rx);
+            ctx.strokeStyle = 'rgba(148, 163, 184, 0.2)';
+            ctx.beginPath();
+            ctx.moveTo(x, originY);
+            ctx.lineTo(x, toY(yMax));
+            ctx.stroke();
+            ctx.fillText(`${Math.round(rx)}mm`, x, originY + 15);
+        }
+        ctx.textAlign = 'right';
+        for (let i = 0; i <= vsteps; i++) {
+            const sy = yMin + ((yMax - yMin) / vsteps) * i;
+            const y = toY(sy);
+            ctx.strokeStyle = 'rgba(148, 163, 184, 0.2)';
+            ctx.beginPath();
+            ctx.moveTo(toX(xMin), y);
+            ctx.lineTo(toX(xMax), y);
+            ctx.stroke();
+            ctx.fillText(`${Math.round(sy)}mm`, toX(0) - 6, y + 4);
+        }
+
+        // 原点（BB）表示
+        ctx.fillStyle = '#a5f3fc';
+        ctx.beginPath();
+        ctx.arc(toX(0), originY, 4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#f9fafb';
+        ctx.textAlign = 'left';
+        ctx.fillText('BB (0,0)', toX(0) + 6, originY - 6);
+
+        // フレーム形状を実際の座標で表示（シートチューブ・ダウンチューブ・トップチューブ）
+        const bbPt = { x: toX(0), y: originY };
+        const seatTopPt = { x: toX(0), y: toY(bike.seatTube) };
+        const headTopPt = { x: toX(bike.reach), y: toY(bike.stack) };
+        const projectedTopPt = { x: toX(bike.topTube), y: toY(bike.stack) }; // 水平換算トップチューブの位置
+
+        // シートチューブ
+        ctx.strokeStyle = '#60a5fa';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(bbPt.x, bbPt.y);
+        ctx.lineTo(seatTopPt.x, seatTopPt.y);
+        ctx.stroke();
+
+        // ダウンチューブ
+        ctx.beginPath();
+        ctx.moveTo(bbPt.x, bbPt.y);
+        ctx.lineTo(headTopPt.x, headTopPt.y);
+        ctx.stroke();
+
+        // 実トップチューブ（シートチューブ上端 -> ヘッドチューブ上端）
+        ctx.beginPath();
+        ctx.moveTo(seatTopPt.x, seatTopPt.y);
+        ctx.lineTo(headTopPt.x, headTopPt.y);
+        ctx.stroke();
+
+        // メーカー水平TT
+        ctx.strokeStyle = '#7dd3fc';
+        ctx.lineWidth = 1.2;
+        ctx.setLineDash([4, 4]);
+        ctx.beginPath();
+        ctx.moveTo(toX(0), toY(bike.stack));
+        ctx.lineTo(projectedTopPt.x, projectedTopPt.y);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // ステム・ハンドル配置
+        const stemLength = rider.stemLength || 90;
+        const stemLengthPx = stemLength * scale;
+        const stemAngleRad = -Math.PI / 12; // 上向き少し
+        const handlebarLogical = {
+            x: bike.reach + stemLength * Math.cos(stemAngleRad),
+            y: effectiveStack + stemLength * Math.sin(stemAngleRad)
+        };
+        const stemEndPt = {
+            x: headTopPt.x + Math.cos(stemAngleRad) * stemLengthPx,
+            y: headTopPt.y + Math.sin(stemAngleRad) * stemLengthPx
+        };
+
+        // ステム
+        ctx.strokeStyle = '#fb7185';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(headTopPt.x, headTopPt.y);
+        ctx.lineTo(stemEndPt.x, stemEndPt.y);
+        ctx.stroke();
+
+        // ハンドル位置
+        ctx.fillStyle = '#fb7185';
+        ctx.beginPath();
+        ctx.arc(stemEndPt.x, stemEndPt.y, 5, 0, Math.PI * 2);
+        ctx.fill();
+
+        // ハンドル名
+        ctx.fillStyle = '#f9fafb';
+        ctx.font = '12px Inter, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText('ハンドル', stemEndPt.x + 8, stemEndPt.y - 6);
+
+        // サドル位置としてシートチューブ上端も表示
+        ctx.fillStyle = '#38bdf8';
+        ctx.beginPath();
+        ctx.arc(seatTopPt.x, seatTopPt.y, 5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#f9fafb';
+        ctx.fillText('サドル', seatTopPt.x + 8, seatTopPt.y - 6);
+
+        ctx.fillStyle = '#60a5fa';
+        ctx.font = '11px Inter, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(`実トップ ${Math.round(Math.hypot(bike.reach, bike.stack - bike.seatTube))}mm`, (seatTopPt.x + headTopPt.x) / 2 + 6, (seatTopPt.y + headTopPt.y) / 2 - 6);
+        ctx.fillText(`水平TT ${Math.round(bike.topTube)}mm`, originX + 6, toY(bike.stack) - 8);
+
+        // 実測と理想ポイント
+        const drawDot = (x, y, color, label) => {
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.arc(x, y, 6, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = color;
+            ctx.font = '12px Inter, sans-serif';
+            ctx.textAlign = 'left';
+            ctx.fillText(label, x + 8, y - 8);
+        };
+
+        drawDot(headTopPt.x, headTopPt.y, '#fbbf24', '実測ヘッドチューブ');
+        drawDot(handlebarPt.x, handlebarPt.y, '#f59e0b', '実測ハンドル');
+        drawDot(toX(ideal.reach), toY(ideal.stack), '#34d399', '理想ハンドル');
+
+        // 差分矢印（リーチ/スタック）
+        ctx.strokeStyle = '#f87171';
+        ctx.fillStyle = '#f87171';
+        ctx.setLineDash([4, 2]);
+        ctx.beginPath();
+        const xA = toX(bike.reach); const yA = toY(effectiveStack);
+        const xB = toX(ideal.reach); const yB = toY(ideal.stack);
+        ctx.moveTo(xA, yA);
+        ctx.lineTo(xB, yB);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        ctx.beginPath();
+        const headX = xB + (xA > xB ? -8 : 8);
+        const headY = yB + (yA > yB ? -8 : 8);
+        ctx.arc(headX, headY, 4, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.font = '12px Inter, sans-serif';
+        ctx.fillStyle = '#f9fafb';
+        ctx.fillText(`ΔReach: ${Math.round(bike.reach - ideal.reach)}mm`, originX + 2, margin.top + 14);
+        ctx.fillText(`ΔStack: ${Math.round(effectiveStack - ideal.stack)}mm`, originX + 2, margin.top + 30);
+
+        // サドル、ステム、ハンドル位置を描画
+        const saddlePt = seatTopPt;
+        const handlebarPt = stemEndPt;
+
+        // サドル点
+        ctx.fillStyle = '#38bdf8';
+        ctx.beginPath();
+        ctx.arc(saddlePt.x, saddlePt.y, 5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#f9fafb';
+        ctx.font = '12px Inter, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText('サドル', saddlePt.x + 8, saddlePt.y - 6);
+
+        // ステム線・ハンドル位置
+        ctx.strokeStyle = '#fb7185';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(headTopPt.x, headTopPt.y);
+        ctx.lineTo(handlebarPt.x, handlebarPt.y);
+        ctx.stroke();
+
+        ctx.fillStyle = '#fb7185';
+        ctx.beginPath();
+        ctx.arc(handlebarPt.x, handlebarPt.y, 5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#f9fafb';
+        ctx.fillText('ハンドル', handlebarPt.x + 8, handlebarPt.y - 6);
+
+        // ライダーの上体座標（シート→ハンドル方向に体幹を置く）
+        const seatCoord = { x: 0, y: bike.seatTube };
+        const hbCoord = { x: handlebarLogical.x, y: handlebarLogical.y };
+        const bodyDx = hbCoord.x - seatCoord.x;
+        const bodyDy = hbCoord.y - seatCoord.y;
+        const bodyDist = Math.sqrt(bodyDx * bodyDx + bodyDy * bodyDy) || 1;
+        const torsoLen = Math.min(rider.torsoLength || 650, bodyDist - 50);
+        const shoulderCoord = {
+            x: seatCoord.x + bodyDx * (torsoLen / bodyDist),
+            y: seatCoord.y + bodyDy * (torsoLen / bodyDist)
+        };
+
+        const shoulderPt = { x: toX(shoulderCoord.x), y: toY(shoulderCoord.y) };
+
+        // ライダー姿勢（簡易）
+        ctx.strokeStyle = '#fde047';
+        ctx.lineWidth = 2;
+
+        // 胴
+        ctx.beginPath();
+        ctx.moveTo(saddlePt.x, saddlePt.y);
+        ctx.lineTo(shoulderPt.x, shoulderPt.y);
+        ctx.stroke();
+
+        // 頭
+        const headRadius = 8;
+        ctx.fillStyle = '#fde047';
+        ctx.beginPath();
+        ctx.arc(shoulderPt.x, shoulderPt.y - 16, headRadius, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 腕
+        ctx.beginPath();
+        ctx.moveTo(shoulderPt.x, shoulderPt.y);
+        ctx.lineTo(handlebarPt.x, handlebarPt.y);
+        ctx.stroke();
+
+        // 脚（ペダル位置=BBに近い想定）
+        ctx.beginPath();
+        ctx.moveTo(saddlePt.x, saddlePt.y);
+        ctx.lineTo(bbPt.x + 20, bbPt.y);
+        ctx.moveTo(saddlePt.x, saddlePt.y);
+        ctx.lineTo(bbPt.x - 20, bbPt.y);
+        ctx.stroke();
+
+        // テキスト
+        ctx.fillStyle = '#f9fafb';
+        ctx.font = '11px Inter, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(`ステム ${stemLength}mm`, headTopPt.x, headTopPt.y - 14);
+
+        // 棒人間（右側エリア）
+        const figureBaseX = width * 0.65;
+        const figureBaseY = height - 18;
+        const figureScale = Math.min((height - 90) / (rider.height || 1700), 0.22);
+
+        const drawStickman = (cx, cy, totalHeight, torsoLen, armLen, color, label) => {
+            const headR = 8;
+            const torsoPx = torsoLen * figureScale;
+            const legPx = (totalHeight - torsoLen) * figureScale;
+            const armPx = armLen * figureScale * 0.7;
+            const shoulderY = cy - legPx - torsoPx * 0.3;
+            const hipY = cy - legPx;
+            const headY = shoulderY - headR * 2;
+
+            ctx.strokeStyle = color;
+            ctx.fillStyle = color;
+            ctx.lineWidth = 2;
+
+            ctx.beginPath();
+            ctx.arc(cx, headY, headR, 0, Math.PI * 2);
+            ctx.fill();
+
+            // 体幹
+            ctx.beginPath();
+            ctx.moveTo(cx, shoulderY);
+            ctx.lineTo(cx, hipY);
+            ctx.stroke();
+
+            // 腕
+            ctx.beginPath();
+            ctx.moveTo(cx, shoulderY);
+            ctx.lineTo(cx - armPx, shoulderY + armPx * 0.1);
+            ctx.moveTo(cx, shoulderY);
+            ctx.lineTo(cx + armPx, shoulderY + armPx * 0.1);
+            ctx.stroke();
+
+            // 足
+            ctx.beginPath();
+            ctx.moveTo(cx, hipY);
+            ctx.lineTo(cx - legPx * 0.4, cy);
+            ctx.moveTo(cx, hipY);
+            ctx.lineTo(cx + legPx * 0.4, cy);
+            ctx.stroke();
+
+            ctx.fillStyle = '#e2e8f0';
+            ctx.font = '12px Inter, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(label, cx, cy + 16);
+        };
+
+        drawStickman(figureBaseX + 30, figureBaseY, rider.height, rider.torsoLength, rider.armLength, '#fbbf24', '身体適合');
+        drawStickman(figureBaseX + 140, figureBaseY, ideal.stack + ideal.reach * 0.6, ideal.torso || 650, rider.armLength, '#34d399', 'フレームフィット（理想）');
+
+        ctx.globalAlpha = 1;
     }
 });
